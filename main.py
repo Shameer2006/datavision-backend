@@ -19,15 +19,21 @@ app = FastAPI(
 )
 
 # CORS configuration — allow local development and production frontends
-allowed_origins = ["http://localhost:3000", "http://localhost:3001"]
-frontend_url = os.getenv("FRONTEND_URL")
-if frontend_url:
-    # Ensure it doesn't have a trailing slash
-    allowed_origins.append(frontend_url.rstrip("/"))
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://datavision-ai.vercel.app",
+]
+
+# Also allow any extra origin set via env var
+frontend_url = os.getenv("FRONTEND_URL", "").rstrip("/")
+if frontend_url and frontend_url not in allowed_origins:
+    allowed_origins.append(frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # allow all Vercel preview URLs
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,6 +43,11 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"status": "ok", "message": "DataVision AI Backend is running"}
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 
 @app.post("/api/chat")
@@ -114,5 +125,5 @@ async def chat(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8000)), reload=False)
 

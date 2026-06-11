@@ -82,14 +82,20 @@ IMPORTANT RULES:
 """
 
 
-async def generate_chat_response(user_message: str, schema: dict | None = None, df_json: str | None = None) -> dict:
+async def generate_chat_response(
+    user_message: str,
+    schema: dict | None = None,
+    df_json: str | None = None,
+    model_name: str = "DataVision Flash"
+) -> dict:
     """
-    Send a prompt to Gemini 2.5 Flash and return the parsed response.
+    Send a prompt to Gemini and return the parsed response.
 
     Args:
         user_message: The user's chat message.
         schema: Optional dict with column names, dtypes, row_count, sample_data.
         df_json: Optional full dataset as JSON string (for computation).
+        model_name: The selected model name (DataVision Flash or DataVision Pro).
 
     Returns:
         dict with 'text_overview' and optionally 'plotly_config'.
@@ -117,7 +123,11 @@ async def generate_chat_response(user_message: str, schema: dict | None = None, 
     prompt = "\n".join(parts)
 
     try:
-        response = await model.generate_content_async(prompt)
+        # Determine model id dynamically
+        gemini_model_id = "gemini-3-flash" if model_name == "DataVision Pro" else "gemini-2.5-flash"
+        generative_model = genai.GenerativeModel(gemini_model_id)
+
+        response = await generative_model.generate_content_async(prompt)
         raw_text = response.text.strip()
 
         # Strip markdown code fences if the model wraps them anyway

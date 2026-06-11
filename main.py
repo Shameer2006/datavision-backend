@@ -56,6 +56,7 @@ async def chat(
     file: UploadFile | None = File(default=None),
     cached_schema: str = Form(default=""),
     cached_df_json: str = Form(default=""),
+    model: str = Form(default="DataVision Flash"),
 ):
     """
     Chat endpoint that processes file uploads and messages,
@@ -112,6 +113,7 @@ async def chat(
         user_message=current_message,
         schema=schema,
         df_json=df_json,
+        model_name=model,
     )
 
     # Include schema and df_json in response so the frontend can cache them
